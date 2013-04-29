@@ -54,7 +54,7 @@ Session.prototype.open = function (callback) {
 
 		if (response.status == 'success') {
 			self.token = response.data.token;
-			self.openTime = new Date();
+			self.openTime = Date.now();
 			self.emit('opened', self.token);
 		}
 		else {
@@ -146,9 +146,7 @@ Session.prototype.execute = function (method, path, options, callback) {
 	var self = this;
 
 	if (this.token != null) {
-		var now = new Date();
-
-		if (now - this.openTime >= (50 * 60 * 1000)) {
+		if (Date.now() - this.openTime >= (50 * 60 * 1000)) {
 			this.verify(function (err) {
 				if (err) {
 					self.open(function (err) {
