@@ -111,14 +111,14 @@ get all SRV records for '_sip._tcp.example.com' and remove any record with match
 	function removeTargetIfExists(fqdn, recordId, target, callback) {
 		dynect.getRecord('SRV', zone, fqdn, recordId, function (response) {
 			if (response.data.rdata.target === target + '.') {
-				// SRV record for CNAME exists so remove
+				// SRV record for target exists so remove
 
 				dynect.removeRecord('SRV', zone, fqdn, recordId, function () {
 					callback(true);
 				});
 			}
 			else {
-				// SRV record for CNAME does not exist
+				// SRV record for target does not exist
 
 				callback(false);
 			}
