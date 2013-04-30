@@ -1,11 +1,18 @@
 {
   "name": "dynect",
   "description": "Dyn DNS API connector for node.js",
-  "author": {
-	"name": "ashley brener",
-	"email": "ashley@frisb.com"
+  "contributors": [
+	 {
+	  "name": "frisB.com",
+	  "email": "play@frisb.com",
+	  "url": "www.frisb.com"
 	},
-  "version": "0.1.7",
+    {
+	  "name": "ashley brener",
+	  "email": "ashley@frisb.com"
+	}
+  ],
+  "version": "0.1.8",
   "keywords": [
     "dynect",
     "dyn",
