@@ -2,7 +2,8 @@
 var https = require('https');
 var util = require('util');
 
-var Logger = require('./logger.js');
+var Logger = require('./logger');
+var Session = require('./session');
 
 function Dynect(customer, username, password, keepalive) {
 	events.EventEmitter.call(this);
