@@ -73,3 +73,51 @@ module.exports = function (category) {
 		}
 	};
 }
+
+Date.prototype.toStarDate = function () {
+	return this.toDateStr('/') + ' ' + this.toTimeStr();
+}
+
+Date.prototype.toDateStr = function (delimiter) {
+	if (!delimiter) {
+		delimiter = '.';
+	}
+
+	return this.getFullYear() + delimiter + pad(this.getMonth() + 1) + delimiter + pad(this.getDate());
+}
+
+Date.prototype.toTimeStr = function (delimiter) {
+	if (!delimiter) {
+		delimiter = ':';
+	}
+
+	var millisec = this.getMilliseconds();
+
+	if (millisec < 100) {
+		millisec = '0' + pad(millisec);
+	}
+
+	return pad(this.getHours()) + delimiter + pad(this.getMinutes()) + delimiter + pad(this.getSeconds()) + delimiter + '' + millisec;
+}
+
+function pad(num, len) {
+	if (typeof (num) != 'string') {
+		num = '' + num;
+	}
+
+	if (!len) {
+		len = 2;
+	}
+
+	if (num.length >= len) {
+		return num;
+	}
+
+	var padding = '';
+
+	for (var i = 0; i < len - num.length; i++) {
+		padding += '0';
+	}
+
+	return padding + num;
+}
