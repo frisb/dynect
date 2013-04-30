@@ -7,28 +7,28 @@ add A record
 
 ``` js
 	// open Dynect API session
-	var dynector = new Dynector('customername', 'username', 'password');
+	var dynect = new Dynect('customername', 'username', 'password');
 
-	dynector.on('connected', function () {
+	dynect.on('connected', function () {
 		var zone = 'example.com';
 
 		// add A record with 5 min TTL
-		dynector.addRecord('A', zone, 'www.example.com', {
+		dynect.addRecord('A', zone, 'www.example.com', {
 			address: '123.45.67.89'
 		}, 300, function (addResponse) {
 			console.log(addResponse);
 
 			//publish zone
-			dynector.publishZone(zone, function (publishResponse) {
+			dynect.publishZone(zone, function (publishResponse) {
 				console.log(publishResponse);
 
 				// close Dynect API session
-				dynector.disconnect();
+				dynect.disconnect();
 			});
 		});
 	})
 
-	dynector.connect();
+	dynect.connect();
 ```
 
 ### example 2 : 
@@ -37,37 +37,37 @@ add CNAME record
 
 ``` js
 	// open Dynect API session and send keepalive every 5mins
-	var dynector = new Dynector('customername', 'username', 'password', 300000);
+	var dynect = new Dynect('customername', 'username', 'password', 300000);
 
-	dynector.on('connected', function () {
+	dynect.on('connected', function () {
 		var zone = 'example.com';
 
 		// add CNAME record with default TTL
-		dynector.addRecord('CNAME', zone, 'www.example.com', {
+		dynect.addRecord('CNAME', zone, 'www.example.com', {
 			cname: 'example.mydomain.com'
 		}, 0, function (addResponse) {
 			console.log(addResponse);
 
 			// publish zone
-			dynector.publishZone(zone, function (publishResponse) {
+			dynect.publishZone(zone, function (publishResponse) {
 				console.log(publishResponse);
 			});
 		});
 	})
 
-	dynector.connect();
+	dynect.connect();
 ```
 
-## Installation
+## installation
 
-### Installing npm (node package manager)
+### installing npm (node package manager)
 ```
   curl http://npmjs.org/install.sh | sh
 ```
 
-### Installing dynector
+### installing dynect
 ```
   [sudo] npm install dynect
 ```
 
-#### Author: [Ashley Brener](http://twitter.com/ashleybrener)
+#### author: [ashley brener](http://twitter.com/ashleybrener)
