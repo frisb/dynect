@@ -2,7 +2,7 @@
 var https = require('https');
 var util = require('util');
 
-var Logger = require('./logger.js');
+var Logger = require('./logger');
 
 function Session(customer, username, password) {
 	events.EventEmitter.call(this);
