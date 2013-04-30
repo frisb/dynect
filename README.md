@@ -64,14 +64,8 @@ add CNAME record
 
 ## installation
 
-### installing npm (node package manager)
 ```
-  curl http://npmjs.org/install.sh | sh
-```
-
-### installing dynect
-```
-  [sudo] npm install dynect
+  npm install dynect
 ```
 
 #### author: ashley @[frisB.com](http://www.frisb.com)
