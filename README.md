@@ -5,6 +5,7 @@ Dyn DNS API connector for node.js.
  
 add A record
 
+``` js
 	// open Dynect API session
 	var dynector = new Dynector('customername', 'username', 'password');
 
@@ -28,12 +29,13 @@ add A record
 	})
 
 	dynector.connect();
-
+```
 
 ### example 2 : 
 
 add CNAME record
 
+``` js
 	// open Dynect API session and send keepalive every 5mins
 	var dynector = new Dynector('customername', 'username', 'password', 300000);
 
@@ -54,6 +56,7 @@ add CNAME record
 	})
 
 	dynector.connect();
+```
 
 ## Installation
 
