@@ -3,24 +3,35 @@ var https = require('https');
 var util = require('util');
 var winston = require('winston');
 
+var Session = require('./session');
+
 var logger = new (winston.Logger)({
 	transports: [
-		new (winston.transports.Console)({
-			colorize: true,
-			handleExceptions: true,
-			timestamp: true
-		})
-	]
+	  new (winston.transports.Console)({
+	  	colorize: true,
+	  	handleExceptions: true,
+	  	timestamp: false
+	  })
+	],
+	levels: {
+		silly: 0,
+		verbose: 1,
+		info: 2,
+		data: 3,
+		warn: 4,
+		debug: 5,
+		error: 6
+	},
+	colors: {
+		silly: 'blue',
+		verbose: 'cyan',
+		info: 'green',
+		data: 'grey',
+		warn: 'magenta',
+		debug: 'yellow',
+		error: 'red'
+	}
 });
-
-winston.addColors({
-	info: 'green',
-	debug: 'yellow',
-	warn: 'purple',
-	error: 'red'
-});
-
-var Session = require('./session');
 
 function Dynector(customer, username, password, keepalive) {
 	events.EventEmitter.call(this);
