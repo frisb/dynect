@@ -5,19 +5,30 @@ var winston = require('winston');
 
 var logger = new (winston.Logger)({
 	transports: [
-		new (winston.transports.Console)({
-			colorize: true,
-			handleExceptions: true,
-			timestamp: true
-		})
-	]
-});
-
-winston.addColors({
-	info: 'green',
-	debug: 'yellow',
-	warn: 'purple',
-	error: 'red'
+	  new (winston.transports.Console)({
+	  	colorize: true,
+	  	handleExceptions: true,
+	  	timestamp: false
+	  })
+	],
+	levels: {
+		silly: 0,
+		verbose: 1,
+		info: 2,
+		data: 3,
+		warn: 4,
+		debug: 5,
+		error: 6
+	},
+	colors: {
+		silly: 'blue',
+		verbose: 'cyan',
+		info: 'green',
+		data: 'grey',
+		warn: 'magenta',
+		debug: 'yellow',
+		error: 'red'
+	}
 });
 
 function Session(customer, username, password) {
