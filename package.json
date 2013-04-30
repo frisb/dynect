@@ -5,12 +5,16 @@
 	"name": "ashley brener",
 	"email": "ashley@frisb.com"
 	},
-  "version": "0.1.6",
+  "version": "0.1.7",
   "keywords": [
     "dynect",
     "dyn",
     "dynamic dns",
-    "dns"
+    "dns",
+	"node.js dynect",
+	"node dynect",
+	"node.js dns",
+	"node dns"
   ],
   "bugs": { "url" : "https://github.com/frisB/dynect/issues" },
   "license": "MIT",
