@@ -1,38 +1,13 @@
 ﻿var events = require('events');
 var https = require('https');
 var util = require('util');
-var winston = require('winston');
 
-var logger = new (winston.Logger)({
-	transports: [
-	  new (winston.transports.Console)({
-	  	colorize: true,
-	  	handleExceptions: true,
-	  	timestamp: false
-	  })
-	],
-	levels: {
-		silly: 0,
-		verbose: 1,
-		info: 2,
-		data: 3,
-		warn: 4,
-		debug: 5,
-		error: 6
-	},
-	colors: {
-		silly: 'blue',
-		verbose: 'cyan',
-		info: 'green',
-		data: 'grey',
-		warn: 'magenta',
-		debug: 'yellow',
-		error: 'red'
-	}
-});
+var Logger = require('./logger.js');
 
 function Session(customer, username, password) {
 	events.EventEmitter.call(this);
+
+	this.logger = new Logger('Dynect Session');
 	this.openTime = null;
 	this.customer = customer;
 	this.username = username;
@@ -46,7 +21,7 @@ module.exports = Session;
 Session.prototype.open = function (callback) {
 	var self = this;
 
-	send(null, 'POST', '/Session/', {
+	this.send(null, 'POST', '/Session/', {
 		data: {
 			customer_name: this.customer,
 			user_name: this.username,
@@ -82,7 +57,7 @@ Session.prototype.open = function (callback) {
 Session.prototype.close = function () {
 	var self = this;
 
-	send(this.token, 'DELETE', '/Session/', {}, function (response) {
+	this.send(this.token, 'DELETE', '/Session/', {}, function (response) {
 		//{ status: 'success',
 		//	data: {},
 		//	job_id: 187784305,
@@ -106,7 +81,7 @@ Session.prototype.close = function () {
 Session.prototype.verify = function () {
 	var self = this;
 
-	send(this.token, 'GET', '/Session/', {}, function (response) {
+	this.send(this.token, 'GET', '/Session/', {}, function (response) {
 		//{ status: 'success',
 		//	data: {},
 		//	job_id: 187782563,
@@ -134,7 +109,7 @@ Session.prototype.verify = function () {
 Session.prototype.keepAlive = function () {
 	var self = this;
 
-	send(this.token, 'PUT', '/Session/', {}, function (response) {
+	this.send(this.token, 'PUT', '/Session/', {}, function (response) {
 		//{ status: 'success',
 		//	data: {},
 		//	job_id: 187784261,
@@ -157,31 +132,33 @@ Session.prototype.execute = function (method, path, options, callback) {
 	var self = this;
 
 	if (this.token != null) {
+		// session open for 50 mins
 		if (Date.now() - this.openTime >= (50 * 60 * 1000)) {
 			this.verify(function (err) {
 				if (err) {
 					self.open(function (err) {
 						if (!err) {
-							send(self.token, method, path, options, callback);
+							self.send(self.token, method, path, options, callback);
 						}
 					});
 				}
 			});
 		}
 		else {
-			send(this.token, method, path, options, callback);
+			this.send(this.token, method, path, options, callback);
 		}
 	}
 	else {
 		this.open(function (err) {
 			if (!err) {
-				send(self.token, method, path, options, callback);
+				self.send(self.token, method, path, options, callback);
 			}
 		});
 	}
 }
 
-function send(token, method, path, options, callback) {
+Session.prototype.send = function (token, method, path, options, callback) {
+	var self = this
 	var opt = {
 		host: 'api2.dynect.net',
 		port: 443,
@@ -232,15 +209,15 @@ function send(token, method, path, options, callback) {
 						var msg = response.msgs[i];
 
 						if (msg.ERR_CD != null) {
-							winston.error(msg.ERR_CD + ' (' + msg.INFO + ')\n');
+							self.logger.error(msg.ERR_CD + ' (' + msg.INFO + ')\n');
 						}
 						else {
-							winston.info(msg.INFO + '\n');
+							self.logger.info(msg.INFO + '\n');
 						}
 					}
 				}
 				else {
-					winston.info(response + '\n');
+					self.logger.info(response + '\n');
 				}
 
 				if (callback) {
@@ -248,16 +225,16 @@ function send(token, method, path, options, callback) {
 				}
 			}
 			catch (e) {
-				winston.error('[request exception] ' + e.message + '\n\n' + data);
+				self.logger.error('request exception: ' + e.message + '\n\n' + data);
 			}
 		});
 	});
 
 	req.on('error', function (e) {
-		winston.error('[request] ' + e);
+		self.logger.error('request: ' + e);
 	});
 
-	winston.info(method + ' https://' + opt.host + opt.path);
+	this.logger.info(method + ' https://' + opt.host + opt.path);
 
 	if ((method === 'POST' || method === 'PUT') && options.data) {
 		req.write(options.data);

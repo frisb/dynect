@@ -1,46 +1,17 @@
 ﻿var events = require('events');
 var https = require('https');
 var util = require('util');
-var winston = require('winston');
 
-var Session = require('./session');
+var Logger = require('./logger.js');
 
-var logger = new (winston.Logger)({
-	transports: [
-	  new (winston.transports.Console)({
-	  	colorize: true,
-	  	handleExceptions: true,
-	  	timestamp: false
-	  })
-	],
-	levels: {
-		silly: 0,
-		verbose: 1,
-		info: 2,
-		data: 3,
-		warn: 4,
-		debug: 5,
-		error: 6
-	},
-	colors: {
-		silly: 'blue',
-		verbose: 'cyan',
-		info: 'green',
-		data: 'grey',
-		warn: 'magenta',
-		debug: 'yellow',
-		error: 'red'
-	}
-});
-
-function Dynector(customer, username, password, keepalive) {
+function Dynect(customer, username, password, keepalive) {
 	events.EventEmitter.call(this);
+	var self = this;
 
+	this.logger = new Logger('Dynect');
 	this.connected = false;
 	this.session = new Session(customer, username, password);
 	this.timer_id = '';
-
-	var self = this;
 
 	this.session.on('opened', function (token) {
 		self.connected = true;
@@ -52,7 +23,7 @@ function Dynector(customer, username, password, keepalive) {
 			}, keepalive);
 		}
 
-		winston.info('[Dynector] connected', { token: token, keepAlive: keepalive });
+		self.logger.info('connected', { token: token, keepAlive: keepalive });
 	});
 
 	function onClosed() {
@@ -64,7 +35,7 @@ function Dynector(customer, username, password, keepalive) {
 			self.timer_id = '';
 		}
 
-		winston.info('[Dynector] disconnected');
+		self.logger.info('disconnected');
 	}
 
 	this.session.on('closed', onClosed);
@@ -77,18 +48,18 @@ function Dynector(customer, username, password, keepalive) {
 	});
 }
 
-util.inherits(Dynector, events.EventEmitter);
-module.exports = Dynector;
+util.inherits(Dynect, events.EventEmitter);
+module.exports = Dynect;
 
-Dynector.prototype.connect = function () {
+Dynect.prototype.connect = function () {
 	this.session.open();
 }
 
-Dynector.prototype.disconnect = function () {
+Dynect.prototype.disconnect = function () {
 	this.session.close();
 }
 
-Dynector.prototype.publishZone = function (zone, callback) {
+Dynect.prototype.publishZone = function (zone, callback) {
 	this.session.execute('PUT', '/Zone/' + zone + '/', {
 		data: { publish: 'true' }
 	}, function (response) {
@@ -103,11 +74,11 @@ Dynector.prototype.publishZone = function (zone, callback) {
 	});
 }
 
-Dynector.prototype.getGSLBRegionPoolEntry = function (zone, fqdn, regionCode, address, callback) {
+Dynect.prototype.getGSLBRegionPoolEntry = function (zone, fqdn, regionCode, address, callback) {
 	this.gslbRegionPoolEntry('GET', zone, fqdn, regionCode, address, {}, callback);
 }
 
-Dynector.prototype.addGSLBRegionPoolEntry = function(zone, fqdn, regionCode, address, label, weight, serveMode, callback) {
+Dynect.prototype.addGSLBRegionPoolEntry = function(zone, fqdn, regionCode, address, label, weight, serveMode, callback) {
 	this.gslbRegionPoolEntry('POST', zone, fqdn, regionCode, address, {
 		rdata: {
 			address: address,
@@ -130,7 +101,7 @@ Dynector.prototype.addGSLBRegionPoolEntry = function(zone, fqdn, regionCode, add
 	//'msgs': [{'INFO': 'add: Record added', 'SOURCE': 'BLL', 'ERR_CD': null, 'LVL': 'INFO'}]}
 }
 
-Dynector.prototype.editGSLBRegionPoolEntry = function (zone, fqdn, regionCode, address, newAddress, label, weight, serveMode, callback) {
+Dynect.prototype.editGSLBRegionPoolEntry = function (zone, fqdn, regionCode, address, newAddress, label, weight, serveMode, callback) {
 	this.gslbRegionPoolEntry('PUT', zone, fqdn, regionCode, address, {
 		rdata: {
 			new_address: newAddress,
@@ -141,11 +112,11 @@ Dynector.prototype.editGSLBRegionPoolEntry = function (zone, fqdn, regionCode, a
 	}, callback);
 }
 
-Dynector.prototype.removeGSLBRegionPoolEntry = function (zone, fqdn, regionCode, address, callback) {
+Dynect.prototype.removeGSLBRegionPoolEntry = function (zone, fqdn, regionCode, address, callback) {
 	this.gslbRegionPoolEntry('DELETE', zone, fqdn, regionCode, address, {}, callback);
 }
 
-Dynector.prototype.gslbRegionPoolEntry = function (method, zone, fqdn, regionCode, address, data, callback)
+Dynect.prototype.gslbRegionPoolEntry = function (method, zone, fqdn, regionCode, address, data, callback)
 {
 	var path = '/GSLBRegionPoolEntry/' + zone + '/' + fqdn + '/' + regionCode + '/';
 	var options = {};
@@ -165,7 +136,7 @@ Dynector.prototype.gslbRegionPoolEntry = function (method, zone, fqdn, regionCod
 	});
 }
 
-Dynector.prototype.getRecordSet = function (type, zone, fqdn, callback) {
+Dynect.prototype.getRecordSet = function (type, zone, fqdn, callback) {
 	this.record(type, 'GET', zone, fqdn, null, {}, callback);
 
 	//{'status': 'success', 
@@ -174,7 +145,7 @@ Dynector.prototype.getRecordSet = function (type, zone, fqdn, callback) {
 	//'msgs': [{'INFO': 'detail: Found 1 record', 'SOURCE': 'BLL', 'ERR_CD': null, 'LVL': 'INFO'}]}
 }
 
-Dynector.prototype.getRecord = function (type, zone, fqdn, recordId, callback) {
+Dynect.prototype.getRecord = function (type, zone, fqdn, recordId, callback) {
 	this.record(type, 'GET', zone, fqdn, recordId, {}, callback);
 
 	//{'status': 'success', 
@@ -190,7 +161,7 @@ Dynector.prototype.getRecord = function (type, zone, fqdn, recordId, callback) {
 	//'msgs': [{'INFO': 'get: Found the record', 'SOURCE': 'API-B', 'ERR_CD': null, 'LVL': 'INFO'}]}
 }
 
-Dynector.prototype.addRecord = function (type, zone, fqdn, rdata, ttl, callback) {
+Dynect.prototype.addRecord = function (type, zone, fqdn, rdata, ttl, callback) {
 	this.record(type, 'POST', zone, fqdn, null, {
 		rdata: rdata,
 		ttl: ttl
@@ -209,22 +180,22 @@ Dynector.prototype.addRecord = function (type, zone, fqdn, rdata, ttl, callback)
 	//'msgs': [{'INFO': 'add: Record added', 'SOURCE': 'BLL', 'ERR_CD': null, 'LVL': 'INFO'}]}
 }
 
-Dynector.prototype.editRecords = function (type, zone, fqdn, records, callback) {
+Dynect.prototype.editRecords = function (type, zone, fqdn, records, callback) {
 	this.record(type, 'PUT', zone, fqdn, recordId, records, callback);
 }
 
-Dynector.prototype.editRecord = function (type, zone, fqdn, recordId, rdata, ttl, callback) {
+Dynect.prototype.editRecord = function (type, zone, fqdn, recordId, rdata, ttl, callback) {
 	this.record(type, 'PUT', zone, fqdn, recordId, {
 		rdata: rdata,
 		ttl: ttl
 	}, callback);
 }
 
-Dynector.prototype.removeRecord = function (type, zone, fqdn, recordId, callback) {
+Dynect.prototype.removeRecord = function (type, zone, fqdn, recordId, callback) {
 	this.record(type, 'DELETE', zone, fqdn, recordId, {}, callback);
 }
 
-Dynector.prototype.record = function (type, method, zone, fqdn, recordId, data, callback) {
+Dynect.prototype.record = function (type, method, zone, fqdn, recordId, data, callback) {
 	var path = '/' + type + 'Record/' + zone + '/' + fqdn + '/';
 	var options = {};
 
