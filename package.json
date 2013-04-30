@@ -1,11 +1,11 @@
 {
-  "name": "dynector",
+  "name": "dynect",
   "description": "Dyn DNS API connector for node.js",
   "author": {
 	"name": "ashley brener",
 	"email": "ashley@frisb.com"
 	},
-  "version": "0.1.0",
+  "version": "0.1.2",
   "dependencies": {
     "winston": "0.6.x"
   },

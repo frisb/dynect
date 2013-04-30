@@ -67,7 +67,7 @@ add CNAME record
 
 ### Installing dynector
 ```
-  [sudo] npm install dynector
+  [sudo] npm install dynect
 ```
 
 #### Author: [Ashley Brener](http://twitter.com/ashleybrener)
