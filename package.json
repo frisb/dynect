@@ -5,7 +5,19 @@
 	"name": "ashley brener",
 	"email": "ashley@frisb.com"
 	},
-  "version": "0.1.2",
+  "version": "0.1.5",
+  "keywords": [
+    "dynect",
+    "dyn",
+    "dynamic dns",
+    "dns"
+  ],
+  "bugs": { "url" : "https://github.com/ashleybrener/dynector/issues" },
+  "license": "MIT",
+  "repository": { 
+	"type" : "git", 
+	"url" : "https://github.com/ashleybrener/dynector"
+  },
   "dependencies": {
     "winston": "0.6.x"
   },
