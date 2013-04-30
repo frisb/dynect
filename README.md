@@ -98,7 +98,7 @@ get all SRV records for '_sip._tcp.example.com' and remove any record with match
 				var parts = uri.split('/');
 				var recordId = parts[parts.length - 1];
 
-				removeCnameIfExists(fqdn, recordId, 'voip.mydomain.com', function (isRemoved) {
+				removeTargetIfExists(fqdn, recordId, 'voip.mydomain.com', function (isRemoved) {
 					console.log(isRemoved ? 'removed' : 'nothing removed')
 
 					// close Dynect API session
@@ -108,7 +108,7 @@ get all SRV records for '_sip._tcp.example.com' and remove any record with match
 		});
 	});
 
-	function removeCnameIfExists(fqdn, recordId, target, callback) {
+	function removeTargetIfExists(fqdn, recordId, target, callback) {
 		dynect.getRecord('SRV', zone, fqdn, recordId, function (response) {
 			if (response.data.rdata.target === target + '.') {
 				// SRV record for CNAME exists so remove
