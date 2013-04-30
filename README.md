@@ -74,4 +74,4 @@ add CNAME record
   [sudo] npm install dynect
 ```
 
-#### author: [ashley brener](http://twitter.com/ashleybrener)
+#### author: ashley @[frisB.com](http://www.frisb.com)
