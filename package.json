@@ -1,6 +1,6 @@
 {
   "name": "dynect",
-  "description": "Dyn DNS API connector for node.js",
+  "description": "Dynect API connector for node.js",
   "contributors": [
 	 {
 	  "name": "frisB.com",

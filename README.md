@@ -1,4 +1,4 @@
-Dyn DNS API connector for node.js.
+Dynect API connector for node.js.
 ===
 
 ### example 1 :
