@@ -70,7 +70,7 @@ add CNAME record www.example.com (cname 'example.mydomain.com')
 
 ### example 3 : 
 
-get all SRV records for 'srv.example.com' and remove any matching cname 'srv.mydomain.com'
+get all SRV records for '_sip._tcp.example.com' and remove any record with matching target 'voip.mydomain.com'
 
 ``` js
 	var Dynect = require('dynect');
@@ -80,7 +80,7 @@ get all SRV records for 'srv.example.com' and remove any matching cname 'srv.myd
 	var zone = 'example.com';
 
 	dynect.on('connected', function () {
-		var fqdn = 'srv.example.com';
+		var fqdn = '_sip._tcp.example.com';
 
 		dynect.getRecordSet('SRV', zone, fqdn, function (response) {
 			console.log(response);
@@ -98,7 +98,7 @@ get all SRV records for 'srv.example.com' and remove any matching cname 'srv.myd
 				var parts = uri.split('/');
 				var recordId = parts[parts.length - 1];
 
-				removeCnameIfExists(fqdn, recordId, 'srv.mydomain.com', function (isRemoved) {
+				removeCnameIfExists(fqdn, recordId, 'voip.mydomain.com', function (isRemoved) {
 					console.log(isRemoved ? 'removed' : 'nothing removed')
 
 					// close Dynect API session
@@ -108,9 +108,9 @@ get all SRV records for 'srv.example.com' and remove any matching cname 'srv.myd
 		});
 	});
 
-	function removeCnameIfExists(fqdn, recordId, cname, callback) {
+	function removeCnameIfExists(fqdn, recordId, target, callback) {
 		dynect.getRecord('SRV', zone, fqdn, recordId, function (response) {
-			if (response.data.rdata.target === cname + '.') {
+			if (response.data.rdata.target === target + '.') {
 				// SRV record for CNAME exists so remove
 
 				dynect.removeRecord('SRV', zone, fqdn, recordId, function () {
