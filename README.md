@@ -1,10 +1,9 @@
-dynector
-========
+Dyn DNS API connector for node.js.
+===
 
-Dyn DNS API connector for node.js
-
-example 1 : add A record
-=========
+### example 1 :
+ 
+add A record
 
 	// open Dynect API session
 	var dynector = new Dynector('customername', 'username', 'password');
@@ -31,8 +30,9 @@ example 1 : add A record
 	dynector.connect();
 
 
-example 2 : add CNAME record
-=========
+### example 2 : 
+
+add CNAME record
 
 	// open Dynect API session and send keepalive every 5mins
 	var dynector = new Dynector('customername', 'username', 'password', 300000);
@@ -54,3 +54,17 @@ example 2 : add CNAME record
 	})
 
 	dynector.connect();
+
+## Installation
+
+### Installing npm (node package manager)
+```
+  curl http://npmjs.org/install.sh | sh
+```
+
+### Installing dynector
+```
+  [sudo] npm install dynector
+```
+
+#### Author: [Ashley Brener](http://twitter.com/ashleybrener)
