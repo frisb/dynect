@@ -9,7 +9,7 @@ contributions are welcome of course.
 
 ### example 1 :
  
-add A record
+add A record www.example.com (address '123.45.67.89')
 
 ``` js
 	var Dynect = require('dynect');
@@ -34,14 +34,14 @@ add A record
 				dynect.disconnect();
 			});
 		});
-	})
+	});
 
 	dynect.connect();
 ```
 
 ### example 2 : 
 
-add CNAME record
+add CNAME record www.example.com (cname 'example.mydomain.com')
 
 ``` js
 	var Dynect = require('dynect');
@@ -63,7 +63,67 @@ add CNAME record
 				console.log(publishResponse);
 			});
 		});
-	})
+	});
+
+	dynect.connect();
+```
+
+### example 3 : 
+
+get all SRV records for 'srv.example.com' and remove any matching cname 'srv.mydomain.com'
+
+``` js
+	var Dynect = require('dynect');
+
+	// open Dynect API session
+	var dynect = new Dynect('customername', 'username', 'password');
+	var zone = 'example.com';
+
+	dynect.on('connected', function () {
+		var fqdn = 'srv.example.com';
+
+		dynect.getRecordSet('SRV', zone, fqdn, function (response) {
+			console.log(response);
+
+			if (response.status === 'failure' && response.msgs[0].ERR_CD === 'NOT_FOUND') {
+				// SRV records not found
+
+				// close Dynect API session
+				dynect.disconnect();
+			}
+			else {
+				// SRV records found
+
+				var uri = response.data[0];
+				var parts = uri.split('/');
+				var recordId = parts[parts.length - 1];
+
+				removeCnameIfExists(fqdn, recordId, 'srv.mydomain.com', function (isRemoved) {
+					console.log(isRemoved ? 'removed' : 'nothing removed')
+
+					// close Dynect API session
+					dynect.disconnect();
+				});
+			}
+		});
+	});
+
+	function removeCnameIfExists(fqdn, recordId, cname, callback) {
+		dynect.getRecord('SRV', zone, fqdn, recordId, function (response) {
+			if (response.data.rdata.target === cname + '.') {
+				// SRV record for CNAME exists so remove
+
+				dynect.removeRecord('SRV', zone, fqdn, recordId, function () {
+					callback(true);
+				});
+			}
+			else {
+				// SRV record for CNAME does not exist
+
+				callback(false);
+			}
+		});
+	}
 
 	dynect.connect();
 ```
@@ -74,6 +134,5 @@ add CNAME record
   npm install dynect
 ```
 
-##
 
 #### the [frisB.com](http://www.frisb.com) team :)
