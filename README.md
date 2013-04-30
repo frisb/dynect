@@ -2,8 +2,10 @@ Dynect API connector for node.js.
 ===
 
 the node.js Dynect module provides a simple interface for making calls to the Dynect API.
+
 it is a work in progress and further functionality and examples will be provided soon.
-contributions are welcome of course :)
+
+contributions are welcome of course.
 
 ### example 1 :
  
@@ -72,4 +74,6 @@ add CNAME record
   npm install dynect
 ```
 
-#### the [frisB.com](http://www.frisb.com) team
+##
+
+#### the [frisB.com](http://www.frisb.com) team :)
