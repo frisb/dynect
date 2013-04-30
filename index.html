@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link href='https://fonts.googleapis.com/css?family=Architects+Daughter' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="stylesheets/pygment_trac.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print" />
+
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <title>dynect by frisb</title>
+  </head>
+
+  <body>
+    <header>
+      <div class="inner">
+        <h1>dynect</h1>
+        <h2>Dynect API connector for node.js</h2>
+        <a href="https://github.com/frisb/dynect" class="button"><small>View project on</small>GitHub</a>
+      </div>
+    </header>
+
+    <div id="content-wrapper">
+      <div class="inner clearfix">
+        <section id="main-content">
+          <h1>Dynect API connector for node.js.</h1>
+
+<p>the node.js Dynect module provides a simple interface for making calls to the Dynect API.</p>
+
+<p>it is a work in progress and further functionality and examples will be provided soon.</p>
+
+<p>contributions are welcome of course.</p>
+
+<h3>example 1 :</h3>
+
+<p>add A record <a href="http://www.example.com">www.example.com</a> (address '123.45.67.89')</p>
+
+<div class="highlight"><pre>    <span class="kd">var</span> <span class="nx">Dynect</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">'dynect'</span><span class="p">);</span>
+
+    <span class="c1">// open Dynect API session</span>
+    <span class="kd">var</span> <span class="nx">dynect</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Dynect</span><span class="p">(</span><span class="s1">'customername'</span><span class="p">,</span> <span class="s1">'username'</span><span class="p">,</span> <span class="s1">'password'</span><span class="p">);</span>
+
+    <span class="nx">dynect</span><span class="p">.</span><span class="nx">on</span><span class="p">(</span><span class="s1">'connected'</span><span class="p">,</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+        <span class="kd">var</span> <span class="nx">zone</span> <span class="o">=</span> <span class="s1">'example.com'</span><span class="p">;</span>
+
+        <span class="c1">// add A record with 5 min TTL</span>
+        <span class="nx">dynect</span><span class="p">.</span><span class="nx">addRecord</span><span class="p">(</span><span class="s1">'A'</span><span class="p">,</span> <span class="nx">zone</span><span class="p">,</span> <span class="s1">'www.example.com'</span><span class="p">,</span> <span class="p">{</span>
+            <span class="nx">address</span><span class="o">:</span> <span class="s1">'123.45.67.89'</span>
+        <span class="p">},</span> <span class="mi">300</span><span class="p">,</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">addResponse</span><span class="p">)</span> <span class="p">{</span>
+            <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">addResponse</span><span class="p">);</span>
+
+            <span class="c1">//publish zone</span>
+            <span class="nx">dynect</span><span class="p">.</span><span class="nx">publishZone</span><span class="p">(</span><span class="nx">zone</span><span class="p">,</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">publishResponse</span><span class="p">)</span> <span class="p">{</span>
+                <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">publishResponse</span><span class="p">);</span>
+
+                <span class="c1">// close Dynect API session</span>
+                <span class="nx">dynect</span><span class="p">.</span><span class="nx">disconnect</span><span class="p">();</span>
+            <span class="p">});</span>
+        <span class="p">});</span>
+    <span class="p">});</span>
+
+    <span class="nx">dynect</span><span class="p">.</span><span class="nx">connect</span><span class="p">();</span>
+</pre></div>
+
+<h3>example 2 :</h3>
+
+<p>add CNAME record <a href="http://www.example.com">www.example.com</a> (cname 'example.mydomain.com')</p>
+
+<div class="highlight"><pre>    <span class="kd">var</span> <span class="nx">Dynect</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">'dynect'</span><span class="p">);</span>
+
+    <span class="c1">// open Dynect API session and send keepalive every 5mins</span>
+    <span class="kd">var</span> <span class="nx">dynect</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Dynect</span><span class="p">(</span><span class="s1">'customername'</span><span class="p">,</span> <span class="s1">'username'</span><span class="p">,</span> <span class="s1">'password'</span><span class="p">,</span> <span class="mi">300000</span><span class="p">);</span>
+
+    <span class="nx">dynect</span><span class="p">.</span><span class="nx">on</span><span class="p">(</span><span class="s1">'connected'</span><span class="p">,</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+        <span class="kd">var</span> <span class="nx">zone</span> <span class="o">=</span> <span class="s1">'example.com'</span><span class="p">;</span>
+
+        <span class="c1">// add CNAME record with default TTL</span>
+        <span class="nx">dynect</span><span class="p">.</span><span class="nx">addRecord</span><span class="p">(</span><span class="s1">'CNAME'</span><span class="p">,</span> <span class="nx">zone</span><span class="p">,</span> <span class="s1">'www.example.com'</span><span class="p">,</span> <span class="p">{</span>
+            <span class="nx">cname</span><span class="o">:</span> <span class="s1">'example.mydomain.com'</span>
+        <span class="p">},</span> <span class="mi">0</span><span class="p">,</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">addResponse</span><span class="p">)</span> <span class="p">{</span>
+            <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">addResponse</span><span class="p">);</span>
+
+            <span class="c1">// publish zone</span>
+            <span class="nx">dynect</span><span class="p">.</span><span class="nx">publishZone</span><span class="p">(</span><span class="nx">zone</span><span class="p">,</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">publishResponse</span><span class="p">)</span> <span class="p">{</span>
+                <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">publishResponse</span><span class="p">);</span>
+            <span class="p">});</span>
+        <span class="p">});</span>
+    <span class="p">});</span>
+
+    <span class="nx">dynect</span><span class="p">.</span><span class="nx">connect</span><span class="p">();</span>
+</pre></div>
+
+<h3>example 3 :</h3>
+
+<p>get all SRV records for '_sip._tcp.example.com' and remove any record with matching target 'voip.mydomain.com'</p>
+
+<div class="highlight"><pre>    <span class="kd">var</span> <span class="nx">Dynect</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">'dynect'</span><span class="p">);</span>
+
+    <span class="c1">// open Dynect API session</span>
+    <span class="kd">var</span> <span class="nx">dynect</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Dynect</span><span class="p">(</span><span class="s1">'customername'</span><span class="p">,</span> <span class="s1">'username'</span><span class="p">,</span> <span class="s1">'password'</span><span class="p">);</span>
+    <span class="kd">var</span> <span class="nx">zone</span> <span class="o">=</span> <span class="s1">'example.com'</span><span class="p">;</span>
+
+    <span class="nx">dynect</span><span class="p">.</span><span class="nx">on</span><span class="p">(</span><span class="s1">'connected'</span><span class="p">,</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+        <span class="kd">var</span> <span class="nx">fqdn</span> <span class="o">=</span> <span class="s1">'_sip._tcp.example.com'</span><span class="p">;</span>
+
+        <span class="nx">dynect</span><span class="p">.</span><span class="nx">getRecordSet</span><span class="p">(</span><span class="s1">'SRV'</span><span class="p">,</span> <span class="nx">zone</span><span class="p">,</span> <span class="nx">fqdn</span><span class="p">,</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">response</span><span class="p">)</span> <span class="p">{</span>
+            <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">response</span><span class="p">);</span>
+
+            <span class="k">if</span> <span class="p">(</span><span class="nx">response</span><span class="p">.</span><span class="nx">status</span> <span class="o">===</span> <span class="s1">'failure'</span> <span class="o">&amp;&amp;</span> <span class="nx">response</span><span class="p">.</span><span class="nx">msgs</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="nx">ERR_CD</span> <span class="o">===</span> <span class="s1">'NOT_FOUND'</span><span class="p">)</span> <span class="p">{</span>
+                <span class="c1">// SRV records not found</span>
+
+                <span class="c1">// close Dynect API session</span>
+                <span class="nx">dynect</span><span class="p">.</span><span class="nx">disconnect</span><span class="p">();</span>
+            <span class="p">}</span>
+            <span class="k">else</span> <span class="p">{</span>
+                <span class="c1">// SRV records found</span>
+
+                <span class="kd">var</span> <span class="nx">uri</span> <span class="o">=</span> <span class="nx">response</span><span class="p">.</span><span class="nx">data</span><span class="p">[</span><span class="mi">0</span><span class="p">];</span>
+                <span class="kd">var</span> <span class="nx">parts</span> <span class="o">=</span> <span class="nx">uri</span><span class="p">.</span><span class="nx">split</span><span class="p">(</span><span class="s1">'/'</span><span class="p">);</span>
+                <span class="kd">var</span> <span class="nx">recordId</span> <span class="o">=</span> <span class="nx">parts</span><span class="p">[</span><span class="nx">parts</span><span class="p">.</span><span class="nx">length</span> <span class="o">-</span> <span class="mi">1</span><span class="p">];</span>
+
+                <span class="nx">removeTargetIfExists</span><span class="p">(</span><span class="nx">fqdn</span><span class="p">,</span> <span class="nx">recordId</span><span class="p">,</span> <span class="s1">'voip.mydomain.com'</span><span class="p">,</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">isRemoved</span><span class="p">)</span> <span class="p">{</span>
+                    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">isRemoved</span> <span class="o">?</span> <span class="s1">'removed'</span> <span class="o">:</span> <span class="s1">'nothing removed'</span><span class="p">)</span>
+
+                    <span class="c1">// close Dynect API session</span>
+                    <span class="nx">dynect</span><span class="p">.</span><span class="nx">disconnect</span><span class="p">();</span>
+                <span class="p">});</span>
+            <span class="p">}</span>
+        <span class="p">});</span>
+    <span class="p">});</span>
+
+    <span class="kd">function</span> <span class="nx">removeTargetIfExists</span><span class="p">(</span><span class="nx">fqdn</span><span class="p">,</span> <span class="nx">recordId</span><span class="p">,</span> <span class="nx">target</span><span class="p">,</span> <span class="nx">callback</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nx">dynect</span><span class="p">.</span><span class="nx">getRecord</span><span class="p">(</span><span class="s1">'SRV'</span><span class="p">,</span> <span class="nx">zone</span><span class="p">,</span> <span class="nx">fqdn</span><span class="p">,</span> <span class="nx">recordId</span><span class="p">,</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">response</span><span class="p">)</span> <span class="p">{</span>
+            <span class="k">if</span> <span class="p">(</span><span class="nx">response</span><span class="p">.</span><span class="nx">data</span><span class="p">.</span><span class="nx">rdata</span><span class="p">.</span><span class="nx">target</span> <span class="o">===</span> <span class="nx">target</span> <span class="o">+</span> <span class="s1">'.'</span><span class="p">)</span> <span class="p">{</span>
+                <span class="c1">// SRV record for target exists so remove</span>
+
+                <span class="nx">dynect</span><span class="p">.</span><span class="nx">removeRecord</span><span class="p">(</span><span class="s1">'SRV'</span><span class="p">,</span> <span class="nx">zone</span><span class="p">,</span> <span class="nx">fqdn</span><span class="p">,</span> <span class="nx">recordId</span><span class="p">,</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+                    <span class="nx">callback</span><span class="p">(</span><span class="kc">true</span><span class="p">);</span>
+                <span class="p">});</span>
+            <span class="p">}</span>
+            <span class="k">else</span> <span class="p">{</span>
+                <span class="c1">// SRV record for target does not exist</span>
+
+                <span class="nx">callback</span><span class="p">(</span><span class="kc">false</span><span class="p">);</span>
+            <span class="p">}</span>
+        <span class="p">});</span>
+    <span class="p">}</span>
+
+    <span class="nx">dynect</span><span class="p">.</span><span class="nx">connect</span><span class="p">();</span>
+</pre></div>
+
+<h2>installation</h2>
+
+<pre><code>  npm install dynect
+</code></pre>
+
+<h2>enjoy</h2>
+
+<h4>the <a href="http://www.frisb.com">frisB.com</a> team :)</h4>
+        </section>
+
+        <aside id="sidebar">
+          <a href="https://github.com/frisb/dynect/zipball/master" class="button">
+            <small>Download</small>
+            .zip file
+          </a>
+          <a href="https://github.com/frisb/dynect/tarball/master" class="button">
+            <small>Download</small>
+            .tar.gz file
+          </a>
+
+          <p class="repo-owner"><a href="https://github.com/frisb/dynect"></a> is maintained by <a href="https://github.com/frisb">frisb</a>.</p>
+
+          <p>This page was generated by <a href="pages.github.com">GitHub Pages</a> using the Architect theme by <a href="http://twitter.com/jasonlong">Jason Long</a>.</p>
+        </aside>
+      </div>
+    </div>
+
+            <script type="text/javascript">
+            var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+            document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+          </script>
+          <script type="text/javascript">
+            try {
+              var pageTracker = _gat._getTracker("UA-40562957-1");
+            pageTracker._trackPageview();
+            } catch(err) {}
+          </script>
+
+  </body>
+</html>
