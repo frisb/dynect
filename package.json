@@ -12,7 +12,7 @@
 	  "email": "ashley@frisb.com"
 	}
   ],
-  "version": "0.1.10",
+  "version": "0.1.11",
   "keywords": [
     "dynect",
     "dyn",
@@ -30,6 +30,7 @@
 	"url" : "https://github.com/frisB/dynect"
   },
   "dependencies": {
+	"async": "0.1.x",
     "winston": "0.6.x"
   },
   "main": "./index",

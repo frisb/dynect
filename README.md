@@ -1,7 +1,9 @@
 Dynect API connector for node.js.
 ===
 
-the node.js Dynect module provides a simple interface for making calls to the Dynect API.
+the node.js Dynect module provides a simple interface for making synchronous (by design and specification) calls to the Dynect API.
+
+although API calls are synchronous, this is facilitated using an asynchronous queue so calls are still non-blocking.
 
 it is a work in progress and further functionality and examples will be provided soon.
 
@@ -25,15 +27,15 @@ add A record www.example.com (address '123.45.67.89')
 			address: '123.45.67.89'
 		}, 300, function (addResponse) {
 			console.log(addResponse);
-
-			//publish zone
-			dynect.publishZone(zone, function (publishResponse) {
-				console.log(publishResponse);
-
-				// close Dynect API session
-				dynect.disconnect();
-			});
 		});
+
+		//publish zone
+		dynect.publishZone(zone, function (publishResponse) {
+			console.log(publishResponse);
+		});
+
+		// close Dynect API session
+		dynect.disconnect();
 	});
 
 	dynect.connect();
@@ -57,18 +59,20 @@ add CNAME record www.example.com (cname 'example.mydomain.com')
 			cname: 'example.mydomain.com'
 		}, 0, function (addResponse) {
 			console.log(addResponse);
-
-			// publish zone
-			dynect.publishZone(zone, function (publishResponse) {
-				console.log(publishResponse);
-			});
 		});
+
+		// publish zone
+		dynect.publishZone(zone, function (publishResponse) {
+			console.log(publishResponse);
+		});
+
+		// do not disconnect because session is kept alive
 	});
 
 	dynect.connect();
 ```
 
-### example 3 : 
+### example 3 (advanced) : 
 
 get all SRV records for '_sip._tcp.example.com' and remove any record with matching target 'voip.mydomain.com'
 
@@ -78,54 +82,86 @@ get all SRV records for '_sip._tcp.example.com' and remove any record with match
 	// open Dynect API session
 	var dynect = new Dynect('customername', 'username', 'password');
 	var zone = 'example.com';
+	var fqdn = '_sip._tcp.example.com';
+	var srvTarget = 'voip.mydomain.com';
+	var ports = [5060, 5070];
 
 	dynect.on('connected', function () {
-		var fqdn = '_sip._tcp.example.com';
+		addSrvRecords(zone, fqdn, srvTarget, ports, function () {
+			dynect.publishZone(zone, function () {
+				if (callback) {
+					callback();
+				}
+			});
 
+			// close Dynect API session
+			dynect.disconnect();
+		});
+	})
+
+	dynect.connect();
+	
+	function addSrvRecords(zone, fqdn, srvTarget, ports, callback) {
 		dynect.getRecordSet('SRV', zone, fqdn, function (response) {
-			console.log(response);
-
-			if (response.status === 'failure' && response.msgs[0].ERR_CD === 'NOT_FOUND') {
+			if (ports !== null && response.status === 'failure' && response.msgs[0].ERR_CD === 'NOT_FOUND') {
 				// SRV records not found
 
-				// close Dynect API session
-				dynect.disconnect();
+				//{ status: 'failure',
+				//	data: {},
+				//	job_id: 187775860,
+				//	msgs:
+				//	[ { INFO: 'node: Not in zone',
+				//		SOURCE: 'BLL',
+				//		ERR_CD: 'NOT_FOUND',
+				//		LVL: 'ERROR' },
+				//	  { INFO: 'detail: Host is not in this zone',
+				//	  	SOURCE: 'BLL',
+				//	  	ERR_CD: null,
+				//	  	LVL: 'INFO' } ] }
+
+				newSrvRecords(zone, fqdn, srvTarget, ports, callback);
 			}
-			else {
+			else {			
 				// SRV records found
 
-				var uri = response.data[0];
-				var parts = uri.split('/');
-				var recordId = parts[parts.length - 1];
+				for (var i = 0; i < response.data.length; i++) {
+					var uri = response.data[i];
+					var parts = uri.split('/');
+					var recordId = parts[parts.length - 1];
 
-				removeTargetIfExists(fqdn, recordId, 'voip.mydomain.com', function (isRemoved) {
-					console.log(isRemoved ? 'removed' : 'nothing removed')
+					dynect.getRecord('SRV', zone, fqdn, recordId, function (response) {
+						if (response.data.rdata.target === srvTarget + '.') {
+							// SRV record for target exists so remove
 
-					// close Dynect API session
-					dynect.disconnect();
-				});
-			}
-		});
-	});
+							dynect.removeRecord('SRV', zone, fqdn, recordId);
+						}
+					});
+				}
 
-	function removeTargetIfExists(fqdn, recordId, target, callback) {
-		dynect.getRecord('SRV', zone, fqdn, recordId, function (response) {
-			if (response.data.rdata.target === target + '.') {
-				// SRV record for target exists so remove
-
-				dynect.removeRecord('SRV', zone, fqdn, recordId, function () {
-					callback(true);
-				});
-			}
-			else {
-				// SRV record for target does not exist
-
-				callback(false);
+				if (ports !== null) {
+					newSrvRecords(zone, fqdn, srvTarget, ports, callback);
+				}
+				else {
+					callback();
+				}
 			}
 		});
 	}
 
-	dynect.connect();
+	function newSrvRecords(zone, fqdn, srvTarget, ports, callback) {
+		// add a new SRV record for each port
+
+		for (var i = 0; i < ports.length; i++) {
+			dynect.addRecord('SRV', zone, fqdn, {
+				port: ports[i],
+				priority: 10,
+				target: srvTarget,
+				weight: 1
+			}, 60);
+		}
+
+		callback();
+	}
 ```
 
 ## installation
