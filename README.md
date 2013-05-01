@@ -1,9 +1,9 @@
 Dynect API connector for node.js.
 ===
 
-the node.js Dynect module provides a simple interface for making synchronous (by design and specification) calls to the Dynect API.
+the node.js Dynect module provides a simple interface for making calls to the Dynect API.
 
-although API calls are synchronous, this is facilitated using an asynchronous queue so calls are still non-blocking.
+API calls are serialized (by design), facilitated by an asynchronous queue and are therefore non-blocking.
 
 it is a work in progress and further functionality and examples will be provided soon.
 
