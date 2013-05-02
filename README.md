@@ -170,6 +170,7 @@ add SRV records '_sip._tcp.example.com' (target 'voip.mydomain.com' on ports 506
   npm install dynect
 ```
 
-## enjoy
+## enjoy :)
 
-#### the [frisB.com](http://www.frisb.com) team :)
+#### team frisB
+[ring the world](http://www.frisb.com)
