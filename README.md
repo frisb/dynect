@@ -5,7 +5,7 @@ the node.js Dynect module provides a simple interface for making calls to the Dy
 
 API calls are serialized (by design), facilitated by an asynchronous queue and are therefore non-blocking.
 
-it is a work in progress and further functionality and examples will be provided soon.
+the Dynect API connector for node.js is a work in progress and further functionality and examples will be provided soon.
 
 contributions are welcome of course.
 
@@ -74,7 +74,7 @@ add CNAME record www.example.com (cname 'example.mydomain.com')
 
 ### example 3 (advanced) : 
 
-get all SRV records for '_sip._tcp.example.com' and remove any record with matching target 'voip.mydomain.com'
+add SRV records '_sip._tcp.example.com' (target 'voip.mydomain.com' on ports 5060 and 5070, replacing existing if any)
 
 ``` js
 	var Dynect = require('dynect');
