@@ -172,5 +172,4 @@ add SRV records '_sip._tcp.example.com' (target 'voip.mydomain.com' on ports 506
 
 ## enjoy :)
 
-#### team frisB
-[ring the world](http://www.frisb.com)
+#### team frisB.com > [ring the world](http://www.frisb.com)
