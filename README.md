@@ -11,9 +11,9 @@ contributions are welcome of course.
 
 ## object model
 
-[Dynect](wiki/Dynect)
+[Dynect](/wiki/Dynect)
 
-[Record](wiki/Record)
+[Record](/wiki/Record)
 
 ## examples
 
