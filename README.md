@@ -11,9 +11,9 @@ contributions are welcome of course.
 
 ## object model
 
-[Dynect](/wiki/Dynect)
+[Dynect](https://github.com/frisb/dynect/wiki/Dynect)
 
-[Record](/wiki/Record)
+[Record](https://github.com/frisb/dynect/wiki/Record)
 
 ## examples
 
