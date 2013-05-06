@@ -2,17 +2,35 @@
 var https = require('https');
 var util = require('util');
 
-var Logger = require('./logger');
 var Session = require('./session');
 
 function Dynect(customer, username, password, keepalive) {
 	events.EventEmitter.call(this);
-	var self = this;
 
-	this.logger = new Logger('Dynect');
 	this.connected = false;
 	this.session = new Session(customer, username, password);
 	this.timer_id = '';
+
+	this.Record = new (require('./lib/Record'))(this.session);
+	this.ARecord = new (require('./lib/ARecord'))(this.session);
+	this.CNAMERecord = new (require('./lib/CNAMERecord'))(this.session);
+	this.SRVRecord = new (require('./lib/SRVRecord'))(this.session);
+
+	this.services = null;
+	this.misc = null;
+	this.users = null;
+	this.permissions = null;
+	this.zones = null;
+	this.reports = null;
+
+	this._wireSessionEvents(keepalive);
+}
+
+util.inherits(Dynect, events.EventEmitter);
+module.exports = Dynect;
+
+Dynect.prototype._wireSessionEvents = function (keepalive) {
+	var self = this;
 
 	this.session.on('opened', function (token) {
 		self.connected = true;
@@ -23,8 +41,6 @@ function Dynect(customer, username, password, keepalive) {
 				self.session.keepAlive();
 			}, keepalive);
 		}
-
-		self.logger.info('connected', { token: token, keepAlive: keepalive });
 	});
 
 	function onClosed() {
@@ -35,8 +51,6 @@ function Dynect(customer, username, password, keepalive) {
 			clearInterval(self.timer_id);
 			self.timer_id = '';
 		}
-
-		self.logger.info('disconnected');
 	}
 
 	this.session.on('closed', onClosed);
@@ -47,10 +61,33 @@ function Dynect(customer, username, password, keepalive) {
 			self.session.open();
 		}
 	});
+
+	this._wireClientEvents();
 }
 
-util.inherits(Dynect, events.EventEmitter);
-module.exports = Dynect;
+Dynect.prototype._wireClientEvents = function () {
+	var self = this;
+
+	this.session.client.on('enqueued', function (task) {
+		self.emit('enqueued', task);
+	});
+
+	this.session.client.on('dequeued', function (task) {
+		self.emit('dequeued', task);
+	});
+
+	this.session.client.on('drained', function () {
+		self.emit('queueComplete');
+	});
+
+	this.session.client.on('response', function (task, response) {
+		self.emit('response', task, response);
+	});
+
+	this.session.client.on('error', function (task, err) {
+		self.emit('error', task, err);
+	});
+}
 
 Dynect.prototype.connect = function () {
 	this.session.open();
@@ -60,7 +97,7 @@ Dynect.prototype.disconnect = function () {
 	this.session.close();
 }
 
-Dynect.prototype.publishZone = function (zone, callback) {
+Dynect.prototype.publish = function (zone, callback) {
 	this.session.execute('PUT', '/Zone/' + zone + '/', {
 		data: { publish: 'true' }
 	}, function (response) {
@@ -124,84 +161,6 @@ Dynect.prototype.gslbRegionPoolEntry = function (method, zone, fqdn, regionCode,
 
 	if (method !== 'POST') {
 		path += address + '/';
-	}
-
-	if (method === 'POST' || method === 'PUT') {
-		options.data = data;
-	}
-
-	this.session.execute(method, path, options, function (response) {
-		if (callback) {
-			callback(response);
-		}
-	});
-}
-
-Dynect.prototype.getRecordSet = function (type, zone, fqdn, callback) {
-	this.record(type, 'GET', zone, fqdn, null, {}, callback);
-
-	//{'status': 'success', 
-	//'data': ['/REST/ARecord/example.com/www.example.com/13179845'], 
-	//'job_id': 8301511, 
-	//'msgs': [{'INFO': 'detail: Found 1 record', 'SOURCE': 'BLL', 'ERR_CD': null, 'LVL': 'INFO'}]}
-}
-
-Dynect.prototype.getRecord = function (type, zone, fqdn, recordId, callback) {
-	this.record(type, 'GET', zone, fqdn, recordId, {}, callback);
-
-	//{'status': 'success', 
-	//'data': {
-	//'zone': 'example.com', 
-	//'ttl': 30, 
-	//'fqdn': 'www.example.com', 
-	//'record_type': 'A', 
-	//'rdata': {'address': '12.13.14.15'}, 
-	//'record_id': 13179845 
-	//}, 
-	//'job_id': 8307490, 
-	//'msgs': [{'INFO': 'get: Found the record', 'SOURCE': 'API-B', 'ERR_CD': null, 'LVL': 'INFO'}]}
-}
-
-Dynect.prototype.addRecord = function (type, zone, fqdn, rdata, ttl, callback) {
-	this.record(type, 'POST', zone, fqdn, null, {
-		rdata: rdata,
-		ttl: ttl
-	}, callback);
-
-	//{'status': 'success', 
-	//'data': { 
-	//'zone': 'example.com',  
-	//'ttl': 60,  
-	//'fqdn': 'www.example.com',  
-	//'record_type': 'A',  
-	//'rdata': {'address': '12.13.14.15'},  
-	//'record_id': 0 
-	//},  
-	//'job_id': 8965933,  
-	//'msgs': [{'INFO': 'add: Record added', 'SOURCE': 'BLL', 'ERR_CD': null, 'LVL': 'INFO'}]}
-}
-
-Dynect.prototype.editRecords = function (type, zone, fqdn, records, callback) {
-	this.record(type, 'PUT', zone, fqdn, recordId, records, callback);
-}
-
-Dynect.prototype.editRecord = function (type, zone, fqdn, recordId, rdata, ttl, callback) {
-	this.record(type, 'PUT', zone, fqdn, recordId, {
-		rdata: rdata,
-		ttl: ttl
-	}, callback);
-}
-
-Dynect.prototype.removeRecord = function (type, zone, fqdn, recordId, callback) {
-	this.record(type, 'DELETE', zone, fqdn, recordId, {}, callback);
-}
-
-Dynect.prototype.record = function (type, method, zone, fqdn, recordId, data, callback) {
-	var path = '/' + type + 'Record/' + zone + '/' + fqdn + '/';
-	var options = {};
-
-	if (recordId !== null) {
-		path += recordId + '/';
 	}
 
 	if (method === 'POST' || method === 'PUT') {

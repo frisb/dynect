@@ -9,67 +9,110 @@ the Dynect API connector for node.js is a work in progress and further functiona
 
 contributions are welcome of course.
 
-### example 1 :
- 
-add A record www.example.com (address '123.45.67.89')
+## object model
+
+[Dynect](wiki/Dynect)
+
+[Record](wiki/Record)
+
+## examples
+
+### Dynect connector instance
 
 ``` js
-	var Dynect = require('dynect');
+var Dynect = require('dynect');
 
-	// open Dynect API session
-	var dynect = new Dynect('customername', 'username', 'password');
+var dynect = new Dynect(username, username, password);
+```
 
-	dynect.on('connected', function () {
-		var zone = 'example.com';
 
-		// add A record with 5 min TTL
-		dynect.addRecord('A', zone, 'www.example.com', {
-			address: '123.45.67.89'
-		}, 300, function (addResponse) {
-			console.log(addResponse);
-		});
+### wiring up events
 
-		//publish zone
-		dynect.publishZone(zone, function (publishResponse) {
-			console.log(publishResponse);
-		});
+``` js
+dynect.on('enqueued', function (task) {
+	console.log('enqueued: ' + task.method + ' ' + task.path);
+});
 
-		// close Dynect API session
-		dynect.disconnect();
+dynect.on('dequeued', function (task) {
+	console.log('dequeued ' + task.method + ' ' + task.path);
+});
+
+dynect.on('queueComplete', function () {
+	console.log('queue complete');
+});
+
+dynect.on('queueComplete', function () {
+	console.log('*');
+});
+
+dynect.on('error', function (task, err) {
+	console.log('error ' + task.method + ' ' + err);
+});
+
+dynect.on('response', function (task, response) {
+	if (response.msgs) {
+		for (var i = 0; i < response.msgs.length; i++) {
+			var msg = response.msgs[i];
+
+			if (msg.ERR_CD != null) {
+				console.log('= ' + task.method + ' ' + msg.ERR_CD);
+			}
+			else {
+				console.log('= ' + task.method + ' ' + msg.INFO);
+			}
+		}
+	}
+	else {
+		console.log('~ ' + task.method + ' ' + response);
+	}
+});
+```
+
+
+### example 1 :
+ 
+add A record www.example.com (address '123.45.67.89', TTL 5 mins)
+
+``` js
+dynect.on('connected', function () {
+	dynect.ARecord.add({
+		zone: 'example.com',
+		fqdn: 'www.example.com',
+		data: {
+			rdata: { address: '123.45.67.89' },
+			ttl: 300,
+		}
 	});
 
-	dynect.connect();
+	dynect.publish(zone);
+
+	dynect.disconnect(zone);
+});
+
+dynect.connect();
 ```
 
 ### example 2 : 
 
-add CNAME record www.example.com (cname 'example.mydomain.com')
+add CNAME record www.example.com (cname 'example.mydomain.com', TTL zone default)
 
 ``` js
-	var Dynect = require('dynect');
-
-	// open Dynect API session and send keepalive every 5mins
-	var dynect = new Dynect('customername', 'username', 'password', 300000);
-
-	dynect.on('connected', function () {
-		var zone = 'example.com';
-
-		// add CNAME record with default TTL
-		dynect.addRecord('CNAME', zone, 'www.example.com', {
-			cname: 'example.mydomain.com'
-		}, 0, function (addResponse) {
-			console.log(addResponse);
-		});
-
-		// publish zone
-		dynect.publishZone(zone, function (publishResponse) {
-			console.log(publishResponse);
-		});
-
-		// do not disconnect because session is kept alive
+dynect.on('connected', function () {
+	dynect.CNAMERecord.add({
+		zone: 'example.com',
+		fqdn: 'www.example.com',
+		data: {
+			rdata: { cname: 'example.mydomain.com' },
+			ttl: 0,
+		}
 	});
 
-	dynect.connect();
+	dynect.publish(zone);
+
+	dynect.disconnect(zone);
+});
+
+dynect.connect();
 ```
 
 ### example 3 (advanced) : 
@@ -77,91 +120,51 @@ add CNAME record www.example.com (cname 'example.mydomain.com')
 add SRV records '_sip._tcp.example.com' (target 'voip.mydomain.com' on ports 5060 and 5070, replacing existing if any)
 
 ``` js
-	var Dynect = require('dynect');
+var zone = 'example.com';
+var fqdn = '_sip._tcp.example.com';
+var srvTarget = 'voip.mydomain.com';
+var ports = [5060, 5070];
 
-	// open Dynect API session
-	var dynect = new Dynect('customername', 'username', 'password');
-	var zone = 'example.com';
-	var fqdn = '_sip._tcp.example.com';
-	var srvTarget = 'voip.mydomain.com';
-	var ports = [5060, 5070];
+dynect.on('connected', function () {
+	dynect.SRVRecord.get({
+		zone: zone,
+		fqdn: fqdn
+	}, function (responses) {
+		for (var x = 0; x < responses.length; x++) {
+			var response = responses[x];
 
-	dynect.on('connected', function () {
-		addSrvRecords(zone, fqdn, srvTarget, ports, function () {
-			dynect.publishZone(zone, function () {
-				if (callback) {
-					callback();
-				}
-			});
-
-			// close Dynect API session
-			dynect.disconnect();
-		});
-	})
-
-	dynect.connect();
-	
-	function addSrvRecords(zone, fqdn, srvTarget, ports, callback) {
-		dynect.getRecordSet('SRV', zone, fqdn, function (response) {
-			if (ports !== null && response.status === 'failure' && response.msgs[0].ERR_CD === 'NOT_FOUND') {
-				// SRV records not found
-
-				//{ status: 'failure',
-				//	data: {},
-				//	job_id: 187775860,
-				//	msgs:
-				//	[ { INFO: 'node: Not in zone',
-				//		SOURCE: 'BLL',
-				//		ERR_CD: 'NOT_FOUND',
-				//		LVL: 'ERROR' },
-				//	  { INFO: 'detail: Host is not in this zone',
-				//	  	SOURCE: 'BLL',
-				//	  	ERR_CD: null,
-				//	  	LVL: 'INFO' } ] }
-
-				newSrvRecords(zone, fqdn, srvTarget, ports, callback);
+			if (response.data.rdata.target === srvTarget + '.') {
+				dynect.SRVRecord.delete({
+					zone: zone,
+					fqdn: fqdn,
+					record_id: response.data.record_id
+				});
 			}
-			else {			
-				// SRV records found
-
-				for (var i = 0; i < response.data.length; i++) {
-					var uri = response.data[i];
-					var parts = uri.split('/');
-					var recordId = parts[parts.length - 1];
-
-					dynect.getRecord('SRV', zone, fqdn, recordId, function (response) {
-						if (response.data.rdata.target === srvTarget + '.') {
-							// SRV record for target exists so remove
-
-							dynect.removeRecord('SRV', zone, fqdn, recordId);
-						}
-					});
-				}
-
-				if (ports !== null) {
-					newSrvRecords(zone, fqdn, srvTarget, ports, callback);
-				}
-				else {
-					callback();
-				}
-			}
-		});
-	}
-
-	function newSrvRecords(zone, fqdn, srvTarget, ports, callback) {
-		// add a new SRV record for each port
-
-		for (var i = 0; i < ports.length; i++) {
-			dynect.addRecord('SRV', zone, fqdn, {
-				port: ports[i],
-				priority: 10,
-				target: srvTarget,
-				weight: 1
-			}, 60);
 		}
 
-		callback();
-	}
+		for (var y = 0; y < ports.length; y++) {
+			dynect.SRVRecord.add({
+				zone: zone,
+				fqdn: fqdn,
+				data: {
+					rdata: {
+						port: ports[y],
+						priority: 10,
+						target: srvTarget,
+						weight: 1
+					},
+					ttl: 60
+				}
+			});
+		}
+
+		dynect.publish(zone);
+
+		dynect.disconnect();
+	});
+});
+
+dynect.connect();
 ```
 
 ## installation
@@ -173,3 +176,29 @@ add SRV records '_sip._tcp.example.com' (target 'voip.mydomain.com' on ports 506
 ## enjoy :)
 
 #### the frisB.com team ( [ring the world](http://www.frisb.com "frisB.com") )
+
+
+## License
+
+(The MIT License)
+
+Copyright (c) frisB.com &lt;play@frisb.com&gt;
+
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of this software and associated documentation files (the
+'Software'), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.

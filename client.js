@@ -1,62 +1,70 @@
 ﻿var async = require('async');
+var events = require('events');
 var https = require('https');
-
-var Logger = require('./logger');
+var util = require('util');
 
 function Client() {
+	events.EventEmitter.call(this);
 	var self = this;
 
-	this.cLogger = new Logger('Dynect Client');
-	this.qLogger = new Logger('Dynect Queue');
-
 	this.Q = async.queue(function (task, callback) {
-		self.qLogger.info('+ ' + task.method + ': ' + task.path);
-		self.send(task.token, task.method, task.path, task.options, callback);
+		self.send(task, callback);
+		self.emit('enqueued', task);
 	}, 1);
 
 	this.Q.drain = function () {
-		self.qLogger.info('*');
+		self.emit('drained');
 	};
 }
 
+util.inherits(Client, events.EventEmitter);
 module.exports = Client;
 
 Client.prototype.queue = function (token, method, path, options, callback) {
 	var self = this;
+	var task = {
+		token: token, 
+		method: method, 
+		path: path
+	};
 
-	this.Q.push({ token: token, method: method, path: path, options: options }, function (response) {
+	if (options.data) {
+		task.data = options.data;
+	}
+
+	this.Q.push(task, function (response) {
 		callback(response);
-		self.qLogger.info('- ' + method + ': ' + path);
+		self.emit('dequeued', task);
 	});
 }
 
-Client.prototype.send = function (token, method, path, options, callback) {
+Client.prototype.send = function (task, callback) {
 	var self = this;
 
 	var opt = {
 		host: 'api2.dynect.net',
 		port: 443,
-		path: '/REST' + path,
-		method: method,
+		path: '/REST' + task.path,
+		method: task.method,
 		headers: {
 			'Content-Type': 'application/json'
 		}
 	};
 
-	if (options.data) {
-		options.data = JSON.stringify(options.data);
-		opt.headers['Content-Length'] = options.data.length;
+	if (task.data) {
+		task.data = JSON.stringify(task.data);
+		opt.headers['Content-Length'] = task.data.length;
 	}
 	else {
 		opt.headers['Content-Length'] = 0;
 	}
 
-	if (path !== '/Session/' || method !== 'POST') {
-		if (token == null) {
+	if (task.path !== '/Session/' || task.method !== 'POST') {
+		if (task.token == null) {
 			throw new Error('must open a session first');
 		}
 
-		opt.headers['Auth-Token'] = token
+		opt.headers['Auth-Token'] = task.token
 	}
 
 	var req = https.request(opt, function (res) {
@@ -69,47 +77,26 @@ Client.prototype.send = function (token, method, path, options, callback) {
 
 		res.on('end', function () {
 			try {
-				var response;
-
-				try {
-					response = JSON.parse(data);
-				}
-				catch (e) {
-					response = data;
-				}
-
-				if (response.msgs) {
-					for (var i = 0; i < response.msgs.length; i++) {
-						var msg = response.msgs[i];
-
-						if (msg.ERR_CD != null) {
-							self.cLogger.error('x ' + method + ': ' + msg.ERR_CD + ' (' + msg.INFO + ')');
-						}
-						else {
-							self.cLogger.info('= ' + method + ': ' + msg.INFO);
-						}
-					}
-				}
-				else {
-					self.cLogger.info('~ ' + method + ': ' + response);
-				}
+				var response = JSON.parse(data);
 
 				if (callback) {
 					callback(response);
 				}
+
+				self.emit('response', task, response);
 			}
 			catch (e) {
-				self.cLogger.error('x ' + method + ': ' + e.stack + '\n\n(' + data + ')');
+				self.emit('error', task, e.stack + '\n\n' + data);
 			}
 		});
 	});
 
 	req.on('error', function (e) {
-		self.cLogger.error('x ' + method + ': ' + e);
+		self.emit('err', task, e.stack);
 	});
 
-	if ((method === 'POST' || method === 'PUT') && options.data) {
-		req.write(options.data);
+	if ((task.method === 'POST' || task.method === 'PUT') && task.data) {
+		req.write(task.data);
 	}
 
 	req.end();
