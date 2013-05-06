@@ -15,6 +15,8 @@ contributions are welcome of course.
 
 [Record](https://github.com/frisb/dynect/wiki/Record)
 
+[Response](https://github.com/frisb/dynect/wiki/Response)
+
 ## examples
 
 ### Dynect connector instance

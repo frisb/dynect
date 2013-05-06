@@ -13,7 +13,7 @@
 	  "url": "www.frisb.com"
 	}
   ],
-  "version": "0.2.0",
+  "version": "0.2.1",
   "keywords": [
     "dynect",
     "dyn",
@@ -31,8 +31,7 @@
 	"url" : "https://github.com/frisB/dynect"
   },
   "dependencies": {
-	"async": "0.1.x",
-    "winston": "0.6.x"
+	"async": "0.1.x"
   },
   "main": "./index",
   "engines": {
