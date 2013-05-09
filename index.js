@@ -2,6 +2,7 @@
 var https = require('https');
 var util = require('util');
 
+var Record = require('./lib/Record');
 var Session = require('./session');
 
 function Dynect(customer, username, password, keepalive) {
@@ -11,10 +12,11 @@ function Dynect(customer, username, password, keepalive) {
 	this.session = new Session(customer, username, password);
 	this.timer_id = '';
 
-	this.Record = new (require('./lib/Record'))(this.session);
-	this.ARecord = new (require('./lib/ARecord'))(this.session);
-	this.CNAMERecord = new (require('./lib/CNAMERecord'))(this.session);
-	this.SRVRecord = new (require('./lib/SRVRecord'))(this.session);
+	this.Record = new Record(this.session);
+	this.ARecord = new Record(this.session,		'A',		['address']);
+	this.CNAMERecord = new Record(this.session, 'CNAME',	['cname']);
+	this.SRVRecord = new Record(this.session,	'SRV',		['port', 'priority', 'target', 'weight']);
+	this.TXTRecord = new Record(this.session,	'TXT',		['txtdata']);
 
 	this.services = null;
 	this.misc = null;
