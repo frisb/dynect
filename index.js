@@ -91,8 +91,8 @@ Dynect.prototype._wireClientEvents = function () {
 	});
 }
 
-Dynect.prototype.connect = function () {
-	this.session.open();
+Dynect.prototype.connect = function (callback) {
+	this.session.open(callback);
 }
 
 Dynect.prototype.disconnect = function () {
