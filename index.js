@@ -13,10 +13,13 @@ function Dynect(customer, username, password, keepalive) {
 	this.timer_id = '';
 
 	this.Record = new Record(this.session);
-	this.ARecord = new Record(this.session,		'A',		['address']);
-	this.CNAMERecord = new Record(this.session, 'CNAME',	['cname']);
-	this.SRVRecord = new Record(this.session,	'SRV',		['port', 'priority', 'target', 'weight']);
-	this.TXTRecord = new Record(this.session,	'TXT',		['txtdata']);
+	this.ARecord = new Record(this.session,			'A',		['address']);
+	this.AAAARecord = new Record(this.session,		'AAAA',		['address']);
+	this.CERTRecord = new Record(this.session,		'CERT',		['format', 'tag', 'algorithm', 'certificate']);
+	this.CNAMERecord = new Record(this.session,		'CNAME',	['cname']);
+	this.MXRecord = new Record(this.session,		'MX',		['exchange', 'preference']);
+	this.SRVRecord = new Record(this.session,		'SRV',		['port', 'priority', 'target', 'weight']);
+	this.TXTRecord = new Record(this.session,		'TXT',		['txtdata']);
 
 	this.services = null;
 	this.misc = null;
