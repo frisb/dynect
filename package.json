@@ -31,7 +31,7 @@
 	"url" : "https://github.com/frisB/dynect"
   },
   "dependencies": {
-	"async": "0.1.x"
+	"async": "*"
   },
   "main": "./index",
   "engines": {
