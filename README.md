@@ -78,9 +78,11 @@ dynect.on('response', function (task, response) {
 add A record www.example.com (address '123.45.67.89', TTL 5 mins)
 
 ``` js
+var zone = 'example.com';
+
 dynect.on('connected', function () {
 	dynect.ARecord.add({
-		zone: 'example.com',
+		zone: zone,
 		fqdn: 'www.example.com',
 		data: {
 			rdata: { address: '123.45.67.89' },
@@ -101,9 +103,11 @@ dynect.connect();
 add CNAME record www.example.com (cname 'example.mydomain.com', TTL zone default)
 
 ``` js
+var zone = 'example.com';
+
 dynect.on('connected', function () {
 	dynect.CNAMERecord.add({
-		zone: 'example.com',
+		zone: zone,
 		fqdn: 'www.example.com',
 		data: {
 			rdata: { cname: 'example.mydomain.com' },
