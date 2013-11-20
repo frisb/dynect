@@ -92,7 +92,7 @@ dynect.on('connected', function () {
 
 	dynect.publish(zone);
 
-	dynect.disconnect(zone);
+	dynect.disconnect();
 });
 
 dynect.connect();
@@ -117,7 +117,7 @@ dynect.on('connected', function () {
 
 	dynect.publish(zone);
 
-	dynect.disconnect(zone);
+	dynect.disconnect();
 });
 
 dynect.connect();
