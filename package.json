@@ -13,7 +13,7 @@
 	  "url": "www.frisb.com"
 	}
   ],
-  "version": "0.2.4",
+  "version": "0.2.5",
   "keywords": [
     "dynect",
     "dyn",
@@ -26,8 +26,8 @@
   ],
   "bugs": { "url" : "https://github.com/frisB/dynect/issues" },
   "license": "MIT",
-  "repository": { 
-	"type" : "git", 
+  "repository": {
+	"type" : "git",
 	"url" : "https://github.com/frisB/dynect"
   },
   "dependencies": {

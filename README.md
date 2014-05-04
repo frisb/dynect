@@ -74,7 +74,7 @@ dynect.on('response', function (task, response) {
 
 
 ### example 1 :
- 
+
 add A record www.example.com (address '123.45.67.89', TTL 5 mins)
 
 ``` js
@@ -98,7 +98,7 @@ dynect.on('connected', function () {
 dynect.connect();
 ```
 
-### example 2 : 
+### example 2 :
 
 add CNAME record www.example.com (cname 'example.mydomain.com', TTL zone default)
 
@@ -123,7 +123,7 @@ dynect.on('connected', function () {
 dynect.connect();
 ```
 
-### example 3 (advanced) : 
+### example 3 (advanced) :
 
 add SRV records '_sip._tcp.example.com' (target 'voip.mydomain.com' on ports 5060 and 5070, replacing existing if any)
 
@@ -180,11 +180,6 @@ dynect.connect();
 ```
   npm install dynect
 ```
-
-## enjoy :)
-
-#### the frisB.com team ( [ring the world](http://www.frisb.com "frisB.com") )
-
 
 ## License
 
